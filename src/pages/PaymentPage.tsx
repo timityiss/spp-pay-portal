@@ -41,22 +41,27 @@ export default function PaymentPage() {
 
   // Load Midtrans Snap script
   useEffect(() => {
-    const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY;
-    if (!clientKey) {
-      console.warn("VITE_MIDTRANS_CLIENT_KEY not set, using fallback");
-    }
-    
-    const existingScript = document.querySelector('script[src*="snap.js"]');
-    if (existingScript) {
-      setSnapLoaded(true);
-      return;
-    }
+    const loadSnap = async () => {
+      const existingScript = document.querySelector('script[src*="snap.js"]');
+      if (existingScript) {
+        setSnapLoaded(true);
+        return;
+      }
 
-    const script = document.createElement("script");
-    script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
-    script.setAttribute("data-client-key", clientKey || "");
-    script.onload = () => setSnapLoaded(true);
-    document.head.appendChild(script);
+      // Fetch client key from edge function
+      const { data, error } = await supabase.functions.invoke("get-midtrans-config");
+      if (error || !data?.client_key) {
+        console.error("Failed to load Midtrans config:", error);
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
+      script.setAttribute("data-client-key", data.client_key);
+      script.onload = () => setSnapLoaded(true);
+      document.head.appendChild(script);
+    };
+    loadSnap();
   }, []);
 
   const searchInvoices = async () => {
