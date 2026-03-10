@@ -1,1 +1,10 @@
 project_id = "vzpkqivovzmlhmuqavbg"
+
+[functions.create-midtrans-token]
+verify_jwt = false
+
+[functions.midtrans-notification]
+verify_jwt = false
+
+[functions.get-midtrans-config]
+verify_jwt = false
